@@ -1,4 +1,4 @@
-package tourGuide;
+package tourGuide.controller;
 
 import java.util.List;
 
@@ -11,7 +11,7 @@ import com.jsoniter.output.JsonStream;
 
 import gpsUtil.location.VisitedLocation;
 import tourGuide.service.TourGuideService;
-import tourGuide.user.User;
+import tourGuide.model.user.User;
 import tripPricer.Provider;
 
 @RestController
