@@ -44,33 +44,16 @@ public class RewardsService {
 		this.userService = userService;
 	}
 
-	/**
-	 * Set a value for the Proximity Buffer
-	 * This controls how close a user's location has to be to an Attraction to gain rewards
-	 *
-	 * @param proximityBuffer int value for distance
-	 */
 	public void setProximityBuffer(int proximityBuffer) {
 		logger.debug("setProximityBuffer: updating proximity buffer to " + proximityBuffer);
 		this.proximityBuffer = proximityBuffer;
 	}
 
-	/**
-	 * Set the Proximity Buffer back to it's default value, as stored in defaultProximityBuffer
-	 */
 	public void setDefaultProximityBuffer() {
 		logger.debug("setDefaultProximityBuffer: resetting proximity buffer to " + defaultProximityBuffer);
 		proximityBuffer = defaultProximityBuffer;
 	}
 
-	/**
-	 * Check if a provided Location is within range of an Attraction
-	 *
-	 * @param attraction attraction to be checked
-	 * @param location location to be compared to
-	 *
-	 * @return true if location is within range, otherwise false
-	 */
 	public boolean isWithinAttractionProximity(Attraction attraction, Location location) {
 		return getDistance(attraction, location) > attractionProximityRange ? false : true;
 	}

@@ -163,34 +163,6 @@ public class TourGuideService {
 	}
 
 	/**
-	 * Track user's current location
-	 *
-	 * Gets users location from GpsService
-	 * Then adds this location to user's visited locations
-	 * Then asks reward service to calculate user's rewards to update with new location
-	 *
-	 * @param userName name of User to be tracked
-	 * @return VisitedLocation of user's current location
-	 */
-	public VisitedLocation trackUserLocationByUsername(String userName) {
-
-		User user = getUserByUsername(userName);
-		if (user == null) {
-			logger.debug("trackUserLocationByUsername: user not found with name " + userName + " returning null");
-			return null;
-		}
-
-		VisitedLocation visitedLocation = gpsService.getUserLocation(user.getUserId());
-
-		CompletableFuture.supplyAsync(()-> {
-					return userService.addToVisitedLocations(visitedLocation, user.getUserName());
-				}, executorService)
-				.thenAccept(n -> {rewardsService.calculateRewards(user);});
-
-		return visitedLocation;
-	}
-
-	/**
 	 * Track all users' current location
 	 *
 	 * For each user:
@@ -206,9 +178,7 @@ public class TourGuideService {
 		logger.debug("trackAllUserLocations: Creating futures for " + allUsers.size() + " user(s)");
 		allUsers.forEach((n)-> {
 			futures.add(
-					CompletableFuture.supplyAsync(()-> {
-						return userService.addToVisitedLocations(gpsService.getUserLocation(n.getUserId()), n.getUserName());
-					}, executorService)
+					CompletableFuture.supplyAsync(()-> userService.addToVisitedLocations(gpsService.getUserLocation(n.getUserId()), n.getUserName()), executorService)
 			);
 		});
 		logger.debug("trackAllUserLocations: Futures created: " + futures.size() + ". Getting futures...");
@@ -344,14 +314,13 @@ public class TourGuideService {
 				getDistance(n, visitedLocation.location), rewardsService.getRewardValue(n, visitedLocation.userId)));
 
 		});
-
 		return output;
 	}
 
 	private static final double STATUTE_MILES_PER_NAUTICAL_MILE = 1.15077945;
-	private int defaultProximityBuffer = 10;
-	private int proximityBuffer = defaultProximityBuffer;
-	private int attractionProximityRange = 200;
+	private final int defaultProximityBuffer = 10;
+	private final int proximityBuffer = defaultProximityBuffer;
+	private final int attractionProximityRange = 200;
 
 	private boolean nearAttraction(VisitedLocation visitedLocation, Attraction attraction) {
 		return getDistance(attraction, visitedLocation.location) > proximityBuffer ? false : true;
@@ -384,7 +353,7 @@ public class TourGuideService {
 	 *
 	 **********************************************************************************/
 	// Database connection will be used for external users, but for testing purposes internal users are provided and stored in memory
-	//private final Map<String, User> internalUserMap = new HashMap<>();
+
 	private void initializeInternalUsers() {
 		IntStream.range(0, InternalTestHelper.getInternalUserNumber()).forEach(i -> {
 			String userName = "internalUser" + i;
@@ -408,7 +377,7 @@ public class TourGuideService {
 	private double generateRandomLongitude() {
 		double leftLimit = -180;
 		double rightLimit = 180;
-		return leftLimit + new Random().nextDouble() * (rightLimit - leftLimit);
+		return (leftLimit + new Random().nextDouble() * (rightLimit - leftLimit));
 	}
 
 	private double generateRandomLatitude() {
