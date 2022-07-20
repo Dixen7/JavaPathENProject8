@@ -73,7 +73,7 @@ public class TestRewardsService {
 		System.out.println(userRewards.size());
 		tourGuideService.tracker.stopTracking();
 
-		assertEquals(gpsUtil.getUserLocation(), userRewards.size());
+		assertEquals(gpsUtil.getAttractions().size(), userRewards.size());
 	}
 
 }
