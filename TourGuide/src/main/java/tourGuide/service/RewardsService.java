@@ -15,6 +15,7 @@ import gpsUtil.location.Location;
 import gpsUtil.location.VisitedLocation;
 import rewardCentral.RewardCentral;
 import tourGuide.model.user.User;
+import tourGuide.model.user.UserReward;
 
 /**
  * RewardsService interfaces with RewardCentral and performs associated tasks for main TourGuide application
@@ -103,37 +104,33 @@ public class RewardsService {
 	 */
 	public void calculateRewards(User user) {
 
-		List<VisitedLocation> userLocations = user.getVisitedLocations();
-		List<Attraction> attractions = gpsService.getAttractions();
+		ExecutorService executorService = Executors.newFixedThreadPool(200);
+		executorService.execute(() -> {
+			List<VisitedLocation> userLocations = new CopyOnWriteArrayList<>(user.getVisitedLocations());
+			List<Attraction> attractions = new CopyOnWriteArrayList<>(gpsService.getAttractions());
 
-		ArrayList<CompletableFuture> futures = new ArrayList<>();
-
-		for(VisitedLocation visitedLocation : userLocations) {
-			for (Attraction attr : attractions) {
-				futures.add(
-						CompletableFuture.runAsync(()-> {
-							if(user.getUserRewards().stream().filter(r -> r.attraction.attractionName.equals(attr.attractionName)).count() == 0) {
-
-								if(nearAttraction(visitedLocation, attr)) {
-									userService.addUserReward(user.getUserName(), visitedLocation, attr, getRewardPoints(attr, user.getUserId()));
-								}
-							}
-						},executorService)
-				);
-			}
-		}
-
-		futures.forEach((n)-> {
-			try {
-				n.get();
-			} catch (InterruptedException e) {
-				logger.error("Calculate Rewards InterruptedException: " + e);
-			} catch (ExecutionException e) {
-				logger.error("Calculate Rewards ExecutionException: " + e);
+			for(VisitedLocation visitedLocation : userLocations) {
+				for(Attraction attraction : attractions) {
+					if(user.getUserRewards().stream().filter(r -> r.attraction.attractionName.equals(attraction.attractionName)).count() == 0) {
+						if(nearAttraction(visitedLocation, attraction)) {
+							user.addUserReward(new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user.getUserId())));
+						}
+					}
+				}
 			}
 		});
 
+		executorService.shutdown();
+		try {
+			if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
+				executorService.shutdownNow();
+			}
+		} catch (InterruptedException e) {
+			executorService.shutdownNow();
+			Thread.currentThread().interrupt();
+		}
 	}
+
 
 	/**
 	 * Calculate rewards for a provided User

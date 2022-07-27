@@ -4,9 +4,11 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.time.StopWatch;
+import org.junit.Before;
 import org.junit.Test;
 
 import gpsUtil.GpsUtil;
@@ -19,6 +21,11 @@ import tourGuide.model.user.User;
 import tripPricer.TripPricer;
 
 public class TestPerformance {
+
+	@Before
+	public void setUp() {
+		Locale.setDefault(new Locale("en", "US"));
+	}
 
 	/*
 	 * A note on performance improvements:
@@ -102,18 +109,11 @@ public class TestPerformance {
 		List<User> allUsers = tourGuideService.getAllUsers();
 		allUsers.forEach(u -> userService.addToVisitedLocations((new VisitedLocation(u.getUserId(), attraction, new Date())), u.getUserName()));
 
-		System.out.println("Done Adding Locations");
-		System.out.println("Starting Calculating Rewards");
-
-		tourGuideService.processAllUserRewards();
-
-		System.out.println("Done Calculating Rewards");
-		System.out.println("Starting Asserting");
+		allUsers.parallelStream().forEach(rewardsService::calculateRewards);
 
 		for(User user : allUsers) {
 			assertTrue(user.getUserRewards().size() > 0);
 		}
-		System.out.println("Done Asserting");
 
 		stopWatch.stop();
 		tourGuideService.tracker.stopTracking();
