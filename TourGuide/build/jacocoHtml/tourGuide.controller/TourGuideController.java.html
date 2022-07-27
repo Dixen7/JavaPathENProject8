@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TourGuideController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">TourGuide</a> &gt; <a href="index.source.html" class="el_package">tourGuide.controller</a> &gt; <span class="el_source">TourGuideController.java</span></div><h1>TourGuideController.java</h1><pre class="source lang-java linenums">package tourGuide.controller;
+
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.jsoniter.output.JsonStream;
+
+import gpsUtil.location.VisitedLocation;
+import tourGuide.model.user.UserReward;
+import tourGuide.service.TourGuideService;
+import tourGuide.model.user.User;
+import tourGuide.service.UserService;
+import tripPricer.Provider;
+
+@RestController
+<span class="nc" id="L22">public class TourGuideController {</span>
+
+<span class="nc" id="L24">    private Logger logger = LoggerFactory.getLogger(TourGuideController.class);</span>
+
+    @Autowired
+    TourGuideService tourGuideService;
+
+    @Autowired
+    UserService userService;
+	
+    @RequestMapping(&quot;/&quot;)
+    public String index() {
+<span class="nc" id="L34">        return &quot;Greetings from TourGuide!&quot;;</span>
+    }
+    
+    @RequestMapping(&quot;/getLocation&quot;)
+    public String getLocation(@RequestParam String userName) {
+<span class="nc" id="L39">        logger.info(&quot;getLocation: endpoint called.&quot;);</span>
+<span class="nc" id="L40">        VisitedLocation visitedLocation = tourGuideService.getUserLocation(userName);</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">        if (visitedLocation == null) {</span>
+<span class="nc" id="L42">            logger.info(&quot;getLocation: requested user not found.&quot;);</span>
+<span class="nc" id="L43">            return JsonStream.serialize(&quot;User Not Found [&quot; + userName + &quot;]&quot;);</span>
+        }
+<span class="nc" id="L45">        logger.info(&quot;getLocation: returning user location.&quot;);</span>
+<span class="nc" id="L46">        return JsonStream.serialize(visitedLocation.location);</span>
+    }
+
+    @RequestMapping(&quot;/getNearbyAttractions&quot;)
+    public String getNearbyAttractions(@RequestParam String userName) {
+<span class="nc" id="L51">        logger.info(&quot;getNearbyAttractions: endpoint called.&quot;);</span>
+<span class="nc" id="L52">        VisitedLocation visitedLocation = tourGuideService.getUserLocation(userName);</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">        if (visitedLocation == null) {</span>
+<span class="nc" id="L54">            logger.info(&quot;getNearbyAttractions: requested user not found.&quot;);</span>
+<span class="nc" id="L55">            return JsonStream.serialize(&quot;User Not Found [&quot; + userName + &quot;]&quot;);</span>
+        }
+<span class="nc" id="L57">        logger.info(&quot;getNearbyAttractions: returning nearby attractions.&quot;);</span>
+<span class="nc" id="L58">        return JsonStream.serialize(tourGuideService.getNearByAttractions(visitedLocation));</span>
+    }
+    
+    @RequestMapping(&quot;/getRewards&quot;)
+    public String getRewards(@RequestParam String userName) {
+<span class="nc" id="L63">        logger.info(&quot;getRewards: endpoint called.&quot;);</span>
+<span class="nc" id="L64">        List&lt;UserReward&gt; userRewards = tourGuideService.getUserRewards(userName);</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">        if (userRewards == null) {</span>
+<span class="nc" id="L66">            logger.info(&quot;getRewards: requested user not found.&quot;);</span>
+<span class="nc" id="L67">            return JsonStream.serialize(&quot;User Not Found [&quot; + userName + &quot;]&quot;);</span>
+        }
+<span class="nc" id="L69">        logger.info(&quot;getRewards: returning user rewards.&quot;);</span>
+<span class="nc" id="L70">        return JsonStream.serialize(userRewards);</span>
+    }
+    
+    @RequestMapping(&quot;/getAllCurrentLocations&quot;)
+    public String getAllCurrentLocations() {
+<span class="nc" id="L75">        logger.info(&quot;getAllCurrentLocations: endpoint called. Returning all current locations&quot;);</span>
+<span class="nc" id="L76">        return JsonStream.serialize(tourGuideService.getAllCurrentLocations());</span>
+    }
+    
+    @RequestMapping(&quot;/getTripDeals&quot;)
+    public String getTripDeals(@RequestParam String userName) {
+<span class="nc" id="L81">        logger.info(&quot;getTripDeals: endpoint called.&quot;);</span>
+<span class="nc" id="L82">        List&lt;Provider&gt; providers = tourGuideService.getTripDeals(userName);</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">        if (providers == null) {</span>
+<span class="nc" id="L84">            logger.info(&quot;getTripDeals: requested user not found.&quot;);</span>
+<span class="nc" id="L85">            return JsonStream.serialize(&quot;User Not Found [&quot; + userName + &quot;]&quot;);</span>
+        }
+<span class="nc" id="L87">        logger.info(&quot;getTripDeals: returning trip deals for user.&quot;);</span>
+<span class="nc" id="L88">        return JsonStream.serialize(providers);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.4.201905082037</span></div></body></html>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="tourGuide.TestTourGuideService" tests="6" skipped="0" failures="0" errors="0" timestamp="2022-07-22T13:53:01" hostname="DESKTOP-OEAMAVL" time="2.058">
+  <properties/>
+  <testcase name="getUserLocation" classname="tourGuide.TestTourGuideService" time="0.034"/>
+  <testcase name="addUser" classname="tourGuide.TestTourGuideService" time="0.0"/>
+  <testcase name="getTripDeals" classname="tourGuide.TestTourGuideService" time="0.045"/>
+  <testcase name="getAllUsers" classname="tourGuide.TestTourGuideService" time="0.001"/>
+  <testcase name="trackUser" classname="tourGuide.TestTourGuideService" time="0.088"/>
+  <testcase name="getNearbyAttractions" classname="tourGuide.TestTourGuideService" time="1.886"/>
+  <system-out><![CDATA[15:53:01.866 [Test worker] INFO tourGuide.service.TourGuideService - TestMode enabled
+15:53:01.866 [Test worker] DEBUG tourGuide.service.TourGuideService - Initializing users
+15:53:01.866 [Test worker] DEBUG tourGuide.service.TourGuideService - Created 0 internal test users.
+15:53:01.866 [Test worker] DEBUG tourGuide.service.TourGuideService - Finished initializing users
+15:53:01.867 [pool-19-thread-1] DEBUG tourGuide.tracker.Tracker - Begin Tracker. Tracking 0 users.
+15:53:01.867 [pool-19-thread-1] DEBUG tourGuide.tracker.Tracker - Tracker Time Elapsed: 0 seconds.
+15:53:01.867 [pool-19-thread-1] DEBUG tourGuide.tracker.Tracker - Tracker sleeping
+15:53:01.901 [pool-18-thread-1] DEBUG tourGuide.service.UserService - addToVisitedLocations: user not found with name jon returning false
+15:53:01.902 [Test worker] INFO tourGuide.service.TourGuideService - TestMode enabled
+15:53:01.902 [Test worker] DEBUG tourGuide.service.TourGuideService - Initializing users
+15:53:01.902 [Test worker] DEBUG tourGuide.service.TourGuideService - Created 0 internal test users.
+15:53:01.902 [Test worker] DEBUG tourGuide.service.TourGuideService - Finished initializing users
+15:53:01.902 [pool-22-thread-1] DEBUG tourGuide.tracker.Tracker - Tracker stopping
+15:53:01.902 [Test worker] INFO tourGuide.service.TourGuideService - TestMode enabled
+15:53:01.902 [Test worker] DEBUG tourGuide.service.TourGuideService - Initializing users
+15:53:01.904 [Test worker] DEBUG tourGuide.service.TourGuideService - Created 0 internal test users.
+15:53:01.905 [Test worker] DEBUG tourGuide.service.TourGuideService - Finished initializing users
+15:53:01.907 [pool-25-thread-1] DEBUG tourGuide.tracker.Tracker - Begin Tracker. Tracking 1 users.
+15:53:01.947 [pool-25-thread-1] DEBUG tourGuide.tracker.Tracker - Tracker Time Elapsed: 0 seconds.
+15:53:01.947 [Test worker] INFO tourGuide.service.TourGuideService - TestMode enabled
+15:53:01.947 [pool-25-thread-1] DEBUG tourGuide.tracker.Tracker - Tracker sleeping
+15:53:01.948 [Test worker] DEBUG tourGuide.service.TourGuideService - Initializing users
+15:53:01.948 [Test worker] DEBUG tourGuide.service.TourGuideService - Created 0 internal test users.
+15:53:01.948 [Test worker] DEBUG tourGuide.service.TourGuideService - Finished initializing users
+15:53:01.948 [pool-28-thread-1] DEBUG tourGuide.tracker.Tracker - Tracker stopping
+15:53:01.948 [Test worker] INFO tourGuide.service.TourGuideService - TestMode enabled
+15:53:01.950 [Test worker] DEBUG tourGuide.service.TourGuideService - Initializing users
+15:53:01.951 [Test worker] DEBUG tourGuide.service.TourGuideService - Created 0 internal test users.
+15:53:01.951 [Test worker] DEBUG tourGuide.service.TourGuideService - Finished initializing users
+15:53:01.951 [pool-31-thread-1] DEBUG tourGuide.tracker.Tracker - Begin Tracker. Tracking 0 users.
+15:53:01.951 [pool-31-thread-1] DEBUG tourGuide.tracker.Tracker - Tracker Time Elapsed: 0 seconds.
+15:53:01.952 [pool-31-thread-1] DEBUG tourGuide.tracker.Tracker - Tracker sleeping
+15:53:02.038 [pool-30-thread-1] DEBUG tourGuide.service.UserService - addToVisitedLocations: user not found with name jon returning false
+15:53:02.038 [Test worker] INFO tourGuide.service.TourGuideService - TestMode enabled
+15:53:02.038 [Test worker] DEBUG tourGuide.service.TourGuideService - Initializing users
+15:53:02.038 [Test worker] DEBUG tourGuide.service.TourGuideService - Created 0 internal test users.
+15:53:02.038 [Test worker] DEBUG tourGuide.service.TourGuideService - Finished initializing users
+15:53:02.039 [pool-34-thread-1] DEBUG tourGuide.tracker.Tracker - Begin Tracker. Tracking 0 users.
+15:53:02.039 [pool-34-thread-1] DEBUG tourGuide.tracker.Tracker - Tracker Time Elapsed: 0 seconds.
+15:53:02.039 [pool-34-thread-1] DEBUG tourGuide.tracker.Tracker - Tracker sleeping
+15:53:02.126 [pool-33-thread-1] DEBUG tourGuide.service.UserService - addToVisitedLocations: user not found with name jon returning false
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

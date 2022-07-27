@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="tourGuide.TestRewardsService" tests="3" skipped="0" failures="0" errors="0" timestamp="2022-07-22T13:53:00" hostname="DESKTOP-OEAMAVL" time="1.353">
+  <properties/>
+  <testcase name="userGetRewards" classname="tourGuide.TestRewardsService" time="0.503"/>
+  <testcase name="nearAllAttractionggs" classname="tourGuide.TestRewardsService" time="0.837"/>
+  <testcase name="isWithinAttractionProximity" classname="tourGuide.TestRewardsService" time="0.01"/>
+  <system-out><![CDATA[15:53:00.502 [Test worker] INFO tourGuide.service.TourGuideService - TestMode enabled
+15:53:00.502 [Test worker] DEBUG tourGuide.service.TourGuideService - Initializing users
+15:53:00.503 [Test worker] DEBUG tourGuide.service.TourGuideService - Created 0 internal test users.
+15:53:00.503 [Test worker] DEBUG tourGuide.service.TourGuideService - Finished initializing users
+15:53:00.504 [pool-12-thread-1] DEBUG tourGuide.tracker.Tracker - Begin Tracker. Tracking 0 users.
+15:53:00.504 [pool-12-thread-1] DEBUG tourGuide.tracker.Tracker - Tracker Time Elapsed: 0 seconds.
+15:53:00.504 [pool-12-thread-1] DEBUG tourGuide.tracker.Tracker - Tracker sleeping
+15:53:01.008 [Test worker] DEBUG tourGuide.service.RewardsService - setProximityBuffer: updating proximity buffer to 2147483647
+15:53:01.008 [Test worker] INFO tourGuide.service.TourGuideService - TestMode enabled
+15:53:01.008 [Test worker] DEBUG tourGuide.service.TourGuideService - Initializing users
+15:53:01.008 [Test worker] DEBUG tourGuide.service.TourGuideService - Created 1 internal test users.
+15:53:01.008 [Test worker] DEBUG tourGuide.service.TourGuideService - Finished initializing users
+15:53:01.009 [pool-15-thread-1] DEBUG tourGuide.tracker.Tracker - Begin Tracker. Tracking 1 users.
+15:53:01.068 [pool-15-thread-1] DEBUG tourGuide.tracker.Tracker - Tracker Time Elapsed: 0 seconds.
+15:53:01.068 [pool-15-thread-1] DEBUG tourGuide.tracker.Tracker - Tracker sleeping
+15:53:01.844 [Test worker] ERROR tourGuide.service.RewardsService - Calculate Rewards ExecutionException: java.util.concurrent.ExecutionException: java.lang.NullPointerException
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

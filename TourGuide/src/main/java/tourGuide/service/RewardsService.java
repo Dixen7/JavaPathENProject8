@@ -180,4 +180,8 @@ public class RewardsService {
 		});
 		return user.getUserName();
 	}
+	public ExecutorService getExecutorService() {
+		return executorService;
+	}
+
 }

@@ -40,7 +40,9 @@ public class TestPerformance {
 	 *          assertTrue(TimeUnit.MINUTES.toSeconds(20) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
 	 */
 
-	private static final int NUMBER_OF_TEST_USERS = 100;
+
+	// Users should be incremented up to 100,000, and test finishes within 20 minutes
+	private static final int NUMBER_OF_TEST_USERS = 100000;
 
 	@Test
 	public void highVolumeTrackLocation() {
@@ -48,7 +50,7 @@ public class TestPerformance {
 		UserService userService = new UserService();
 		TripService tripService = new TripService(new TripPricer());
 		RewardsService rewardsService = new RewardsService(gpsService, new RewardCentral(), userService);
-		// Users should be incremented up to 100000, and test finishes within 15 minutes
+
 		InternalTestHelper.setInternalUserNumber(NUMBER_OF_TEST_USERS);
 		TourGuideService tourGuideService = new TourGuideService(gpsService, rewardsService, userService, tripService);
 
@@ -68,7 +70,7 @@ public class TestPerformance {
 		UserService userService = new UserService();
 		TripService tripService = new TripService(new TripPricer());
 		RewardsService rewardsService = new RewardsService(gpsService, new RewardCentral(), userService);
-		// Users should be incremented up to 100,000, and test finishes within 15 minutes
+
 		InternalTestHelper.setInternalUserNumber(NUMBER_OF_TEST_USERS);
 		TourGuideService tourGuideService = new TourGuideService(gpsService, rewardsService, userService, tripService);
 
@@ -89,7 +91,6 @@ public class TestPerformance {
 		TripService tripService = new TripService(new TripPricer());
 		RewardsService rewardsService = new RewardsService(gpsService, new RewardCentral(), userService);
 
-		// Users should be incremented up to 100,000, and test finishes within 20 minutes
 		InternalTestHelper.setInternalUserNumber(NUMBER_OF_TEST_USERS);
 		StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
