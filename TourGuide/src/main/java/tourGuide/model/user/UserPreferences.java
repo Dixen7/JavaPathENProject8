@@ -5,7 +5,11 @@ import javax.money.Monetary;
 
 import org.javamoney.moneta.Money;
 
-
+/**
+ * UserPreferences is the model entity to store UserPreference entries
+ *
+ * Includes details of a User's trip preferences; price points, duration, number of adults/children etc
+ */
 public class UserPreferences {
 	
 	private int attractionProximity = Integer.MAX_VALUE;
