@@ -25,7 +25,6 @@ public class RewardsService {
 
 	private static final double STATUTE_MILES_PER_NAUTICAL_MILE = 1.15077945;
 
-	// proximity in miles
 	private int defaultProximityBuffer = 100;
 	private int proximityBuffer = defaultProximityBuffer;
 	private int attractionProximityRange = 200;
@@ -33,9 +32,8 @@ public class RewardsService {
 	private final RewardCentral rewardsCentral;
 	private final UserService userService;
 
-	//concurrency variables
 	@Value("${thread.pool.size}")
-	private int threadPoolSize = 500;
+	private int threadPoolSize = 50;
 	private ExecutorService executorService = Executors.newFixedThreadPool(threadPoolSize);
 
 	public RewardsService(GpsService gpsService, RewardCentral rewardCentral, UserService userService) {

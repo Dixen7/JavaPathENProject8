@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.util.*;
 
 import gpsUtil.location.Location;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -27,6 +28,11 @@ public class TestRewardsService {
 
 	@Mock
 	private GpsUtil gpsUtil;
+
+	@Before
+	public void setUp() {
+		Locale.setDefault(new Locale("en", "US"));
+	}
 
 	@Test
 	public void userGetRewards() {

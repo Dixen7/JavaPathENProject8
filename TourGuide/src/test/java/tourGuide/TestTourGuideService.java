@@ -4,8 +4,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import gpsUtil.GpsUtil;
@@ -20,6 +22,11 @@ import tripPricer.Provider;
 import tripPricer.TripPricer;
 
 public class TestTourGuideService {
+
+	@Before
+	public void setUp() {
+		Locale.setDefault(new Locale("en", "US"));
+	}
 
 	@Test
 	public void getUserLocation() {

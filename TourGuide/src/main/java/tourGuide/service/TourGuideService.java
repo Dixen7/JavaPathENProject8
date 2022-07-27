@@ -35,7 +35,7 @@ public class TourGuideService {
 	public final Tracker tracker;
 	boolean testMode = true;
 	@Value("${thread.pool.size}")
-	private int threadPoolSize = 20;
+	private int threadPoolSize = 50;
 	private ExecutorService executorService = Executors.newFixedThreadPool(threadPoolSize);
 
 
