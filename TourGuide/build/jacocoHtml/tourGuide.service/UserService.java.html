@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">TourGuide</a> &gt; <a href="index.source.html" class="el_package">tourGuide.service</a> &gt; <span class="el_source">UserService.java</span></div><h1>UserService.java</h1><pre class="source lang-java linenums">package tourGuide.service;
+
+import gpsUtil.location.Attraction;
+import gpsUtil.location.VisitedLocation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import tourGuide.model.user.User;
+import tourGuide.model.user.UserLocation;
+import tourGuide.model.user.UserReward;
+
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
+
+/**
+ * UserService contains our collection of users, and performs associated tasks for main TourGuide application
+ *
+ * Currently, to allow concurrent access we use a ConcurrentMap to store Users.
+ * In a real system we would adapt this class to interface with a database or similar storage solution instead
+ */
+@Service
+public class UserService {
+<span class="fc" id="L27">    private Logger logger = LoggerFactory.getLogger(UserService.class);</span>
+    private ConcurrentMap&lt;String, User&gt; usersByName;
+
+<span class="fc" id="L30">    public UserService() {</span>
+<span class="fc" id="L31">        final int CAPACITY = 100;</span>
+<span class="fc" id="L32">        usersByName = new ConcurrentHashMap&lt;&gt;(CAPACITY);</span>
+<span class="fc" id="L33">    }</span>
+
+    /**
+     * Add a user to the collection
+     *
+     * @param user User object to be added
+     * @return boolean true if successful, false if user already exists with this username
+     */
+    public boolean addUser(User user){
+<span class="pc bpc" id="L42" title="1 of 2 branches missed.">        if(!usersByName.containsKey(user.getUserName())) {</span>
+<span class="fc" id="L43">            usersByName.put(user.getUserName(), user);</span>
+<span class="fc" id="L44">            return true;</span>
+        }
+<span class="nc" id="L46">        return false;</span>
+    }
+
+    /**
+     * Add a VisitedLocation to a stored User
+     *
+     * @param visitedLocation VisitedLocation object to be added to user
+     * @param userName name of user
+     * @return boolean true if successful, false if user not found
+     */
+    public boolean addToVisitedLocations(VisitedLocation visitedLocation, String userName) {
+<span class="fc" id="L57">        User user = usersByName.get(userName);</span>
+<span class="fc bfc" id="L58" title="All 2 branches covered.">        if (user != null) {</span>
+<span class="fc" id="L59">            user.addToVisitedLocations(visitedLocation);</span>
+<span class="fc" id="L60">            return true;</span>
+        }
+<span class="fc" id="L62">        logger.debug(&quot;addToVisitedLocations: user not found with name &quot; + userName + &quot; returning false&quot;);</span>
+<span class="fc" id="L63">        return false;</span>
+    }
+
+    /**
+     * Get all users' current locations
+     *
+     * @return List of UserLocation objects
+     */
+    public List&lt;UserLocation&gt; getAllCurrentLocations() {
+<span class="nc" id="L72">        List&lt;UserLocation&gt; userLocations = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L73">        usersByName.forEach((k,v)-&gt; {</span>
+<span class="nc" id="L74">            userLocations.add(new UserLocation(v.getUserId(), v.getLastVisitedLocation()));</span>
+<span class="nc" id="L75">        });</span>
+<span class="nc" id="L76">        return userLocations;</span>
+    }
+
+    /**
+     * Generate and add a UserReward to a stored User
+     *
+     * @param userName user's userName
+     * @param visitedLocation the location user was tracked at
+     * @param attraction the attraction the reward is for
+     * @param rewardPoints the points to be added
+     * @return boolean true if successful, false if user not found
+     */
+    public boolean addUserReward(String userName, VisitedLocation visitedLocation, Attraction attraction, int rewardPoints) {
+<span class="fc" id="L89">        User user = getUserByUsername(userName);</span>
+<span class="pc bpc" id="L90" title="1 of 2 branches missed.">        if (user != null) {</span>
+<span class="fc" id="L91">            user.addUserReward(new UserReward(visitedLocation, attraction, rewardPoints));</span>
+<span class="fc" id="L92">            return true;</span>
+        }
+<span class="nc" id="L94">        logger.debug(&quot;addUserReward: user not found with name &quot; + userName + &quot; returning false&quot;);</span>
+<span class="nc" id="L95">        return false;</span>
+    }
+
+    /**
+     * Get all users currently stored in system
+     *
+     * @return List of User objects
+     */
+    public List&lt;User&gt; getAllUsers() {
+<span class="fc" id="L104">        return usersByName.values().stream().collect(Collectors.toList());</span>
+    }
+
+    /**
+     * Get user from system by userName
+     * Returns null if user does not exist
+     *
+     * @param userName user's userName
+     * @return User object
+     */
+    public User getUserByUsername(String userName) {
+<span class="fc" id="L115">        return usersByName.get(userName);</span>
+    }
+
+    /**
+     * Get count of all users currently stored in system
+     *
+     * @return count of all users currently stored in system
+     */
+    public int getUserCount() {
+<span class="nc" id="L124">        return usersByName.size();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.4.201905082037</span></div></body></html>

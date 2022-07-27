@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GpsService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">TourGuide</a> &gt; <a href="index.source.html" class="el_package">tourGuide.service</a> &gt; <span class="el_source">GpsService.java</span></div><h1>GpsService.java</h1><pre class="source lang-java linenums">package tourGuide.service;
+
+import gpsUtil.GpsUtil;
+import gpsUtil.location.Attraction;
+import gpsUtil.location.VisitedLocation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+/**
+ * GpsService interfaces with GpsUtil to perform associated tasks for main TourGuide application
+ */
+@Service
+public class GpsService {
+<span class="fc" id="L19">    private Logger logger = LoggerFactory.getLogger(GpsService.class);</span>
+    private final GpsUtil gpsUtil;
+
+<span class="fc" id="L22">    public GpsService(GpsUtil gpsUtil) {</span>
+<span class="fc" id="L23">        this.gpsUtil = gpsUtil;</span>
+<span class="fc" id="L24">    }</span>
+
+    /**
+     * Get User Location
+     *
+     * Queries GpsUtil to get location of user with provided UUID
+     *
+     * @param userId UUID of user to be located
+     * @return current location of user
+     */
+    public VisitedLocation getUserLocation(UUID userId) {
+<span class="fc" id="L35">        return gpsUtil.getUserLocation(userId);</span>
+    }
+
+    /**
+     * Get Attractions
+     *
+     * Queries GpsUtil to get all available attractions currently available
+     *
+     * @return list of Attraction objects for all available attractions
+     */
+    public List&lt;Attraction&gt; getAttractions() {
+<span class="fc" id="L46">        return new ArrayList&lt;&gt;(gpsUtil.getAttractions());</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.4.201905082037</span></div></body></html>

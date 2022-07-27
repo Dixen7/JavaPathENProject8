@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TripService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">TourGuide</a> &gt; <a href="index.source.html" class="el_package">tourGuide.service</a> &gt; <span class="el_source">TripService.java</span></div><h1>TripService.java</h1><pre class="source lang-java linenums">package tourGuide.service;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import tourGuide.model.user.User;
+import tripPricer.Provider;
+import tripPricer.TripPricer;
+
+import java.util.List;
+
+/**
+ * TripService interfaces with TripPricer and performs associated tasks for main TourGuide application
+ */
+@Service
+public class TripService {
+
+<span class="fc" id="L19">    private Logger logger = LoggerFactory.getLogger(TripService.class);</span>
+    private final TripPricer tripPricer;
+
+    @Value(&quot;${tripPricer.api.key}&quot;)
+    private static final String tripPricerApiKey = &quot;test-server-api-key&quot;;
+
+<span class="fc" id="L25">    public TripService(TripPricer tripPricer) {</span>
+<span class="fc" id="L26">        this.tripPricer = tripPricer;</span>
+<span class="fc" id="L27">    }</span>
+
+    /**
+     * Get trip deals for a provided User
+     * Queries TripPricer with various user details (including preferences such as number of adults/children)
+     * TripPricer responds with 5 trip deals for user based on provided requirements
+     *
+     * @param user user for whom deals are to be found
+     * @return suggested deals as a List of Provider objects
+     */
+    public List&lt;Provider&gt; getTripDeals(User user) {
+<span class="pc" id="L38">        int cumulatativeRewardPoints = user.getUserRewards().stream().mapToInt(i -&gt; i.getRewardPoints()).sum();</span>
+<span class="fc" id="L39">        List&lt;Provider&gt; providers = tripPricer.getPrice(tripPricerApiKey, user.getUserId(), user.getUserPreferences().getNumberOfAdults(),</span>
+<span class="fc" id="L40">                user.getUserPreferences().getNumberOfChildren(), user.getUserPreferences().getTripDuration(), cumulatativeRewardPoints);</span>
+<span class="fc" id="L41">        user.setTripDeals(providers);</span>
+<span class="fc" id="L42">        return providers;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.4.201905082037</span></div></body></html>
