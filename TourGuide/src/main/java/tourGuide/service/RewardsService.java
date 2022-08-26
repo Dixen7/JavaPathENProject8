@@ -1,8 +1,6 @@
 package tourGuide.service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.*;
 
 import org.slf4j.Logger;
@@ -32,15 +30,17 @@ public class RewardsService {
 	private final GpsService gpsService;
 	private final RewardCentral rewardsCentral;
 	private final UserService userService;
-
-	@Value("${thread.pool.size}")
-	private int threadPoolSize = 50;
+	private int threadPoolSize = 100;
 	private ExecutorService executorService = Executors.newFixedThreadPool(threadPoolSize);
 
 	public RewardsService(GpsService gpsService, RewardCentral rewardCentral, UserService userService) {
 		this.gpsService = gpsService;
 		this.rewardsCentral = rewardCentral;
 		this.userService = userService;
+	}
+
+	public ExecutorService getExecutor() {
+		return executorService;
 	}
 
 	public void setProximityBuffer(int proximityBuffer) {
@@ -58,7 +58,7 @@ public class RewardsService {
 	}
 
 	//Check if a VisitedLocation is within range of an Attraction
-	private boolean nearAttraction(VisitedLocation visitedLocation, Attraction attraction) {
+	public boolean nearAttraction(VisitedLocation visitedLocation, Attraction attraction) {
 		return getDistance(attraction, visitedLocation.location) > proximityBuffer ? false : true;
 	}
 
@@ -103,32 +103,21 @@ public class RewardsService {
 	 * @param user User object
 	 */
 	public void calculateRewards(User user) {
+		CopyOnWriteArrayList<VisitedLocation> userLocations = new CopyOnWriteArrayList<>();
+		List<Attraction> attractions = new CopyOnWriteArrayList<>();
 
-		ExecutorService executorService = Executors.newFixedThreadPool(200);
-		executorService.execute(() -> {
-			List<VisitedLocation> userLocations = new CopyOnWriteArrayList<>(user.getVisitedLocations());
-			List<Attraction> attractions = new CopyOnWriteArrayList<>(gpsService.getAttractions());
+		userLocations.addAll(user.getVisitedLocations());
+		attractions.addAll(gpsService.getAttractions());
 
-			for(VisitedLocation visitedLocation : userLocations) {
-				for(Attraction attraction : attractions) {
-					if(user.getUserRewards().stream().filter(r -> r.attraction.attractionName.equals(attraction.attractionName)).count() == 0) {
-						if(nearAttraction(visitedLocation, attraction)) {
-							user.addUserReward(new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user.getUserId())));
-						}
+		userLocations.forEach(v -> {
+			attractions.forEach(a -> {
+				if (user.getUserRewards().stream().filter(r -> r.attraction.attractionName.equals(a.attractionName)).count() == 0) {
+					if (nearAttraction(v, a)) {
+						user.addUserReward(new UserReward(v, a, getRewardPoints(a, user.getUserId())));
 					}
 				}
-			}
+			});
 		});
-
-		executorService.shutdown();
-		try {
-			if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
-				executorService.shutdownNow();
-			}
-		} catch (InterruptedException e) {
-			executorService.shutdownNow();
-			Thread.currentThread().interrupt();
-		}
 	}
 
 
