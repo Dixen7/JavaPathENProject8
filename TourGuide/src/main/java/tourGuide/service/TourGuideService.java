@@ -34,7 +34,7 @@ public class TourGuideService {
 	private final TripService tripService;
 	public final Tracker tracker;
 	boolean testMode = true;
-	private int threadPoolSize = 100;
+	private int threadPoolSize = 50;
 	private ExecutorService executorService = Executors.newFixedThreadPool(threadPoolSize);
 
 
@@ -52,6 +52,10 @@ public class TourGuideService {
 		}
 		tracker = new Tracker(this);
 		addShutDownHook();
+	}
+
+	public ExecutorService getExecutor() {
+		return executorService;
 	}
 
 	/**
@@ -104,15 +108,6 @@ public class TourGuideService {
 	 */
 	public List<User> getAllUsers() {
 		return userService.getAllUsers();
-	}
-
-	/**
-	 * Get number of users currently stored in system
-	 *
-	 * @return number of users currently stored, as integer
-	 */
-	public int getUserCount() {
-		return userService.getUserCount();
 	}
 
 	/**
@@ -201,7 +196,6 @@ public class TourGuideService {
 	 */
 	public void trackAllUserLocationsAndProcess() {
 
-
 		List<User> allUsers = userService.getAllUsers();
 
 		ArrayList<CompletableFuture> futures = new ArrayList<>();
@@ -227,38 +221,6 @@ public class TourGuideService {
 
 	}
 
-	/**
-	 * Process any pending rewards for all users
-	 *
-	 * For each user:
-	 * Asks reward service to calculate user's rewards to update with any new visited locations
-	 *
-	 */
-	public void processAllUserRewards() {
-
-		List<User> allUsers = userService.getAllUsers();
-
-		ArrayList<CompletableFuture> futures = new ArrayList<>();
-
-		logger.debug("processAllUserRewards: Creating threads for " + allUsers.size() + " user(s)");
-		allUsers.forEach((n)-> {
-			futures.add(
-					CompletableFuture.supplyAsync(()-> rewardsService.calculateRewardsReturn(n), executorService)
-			);
-		});
-		logger.debug("processAllUserRewards: Futures created: " + futures.size() + ". Getting futures...");
-		futures.forEach((n)-> {
-			try {
-				n.get();
-			} catch (InterruptedException e) {
-				logger.error("Process All User Rewards InterruptedException: " + e);
-			} catch (ExecutionException e) {
-				logger.error("Process All User Rewards ExecutionException: " + e);
-			}
-		});
-		logger.debug("processAllUserRewards: Done!");
-
-	}
 
 	/**
 	 * Get all users' current locations from UserService
@@ -328,6 +290,20 @@ public class TourGuideService {
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			executorService.shutdown();tracker.stopTracking();
 		}));
+	}
+
+	public void calculateReward(List<User> users) {
+		ExecutorService executorService = Executors.newFixedThreadPool(100);
+		users.forEach(user ->
+				executorService.submit(new Thread(() -> rewardsService.calculateRewards(user))));
+
+		executorService.shutdown();
+		try {
+			executorService.awaitTermination(20, TimeUnit.MINUTES);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	/**********************************************************************************

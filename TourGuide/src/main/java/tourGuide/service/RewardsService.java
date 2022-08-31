@@ -30,7 +30,7 @@ public class RewardsService {
 	private final GpsService gpsService;
 	private final RewardCentral rewardsCentral;
 	private final UserService userService;
-	private int threadPoolSize = 100;
+	private int threadPoolSize = 50;
 	private ExecutorService executorService = Executors.newFixedThreadPool(threadPoolSize);
 
 	public RewardsService(GpsService gpsService, RewardCentral rewardCentral, UserService userService) {
@@ -46,11 +46,6 @@ public class RewardsService {
 	public void setProximityBuffer(int proximityBuffer) {
 		logger.debug("setProximityBuffer: updating proximity buffer to " + proximityBuffer);
 		this.proximityBuffer = proximityBuffer;
-	}
-
-	public void setDefaultProximityBuffer() {
-		logger.debug("setDefaultProximityBuffer: resetting proximity buffer to " + defaultProximityBuffer);
-		proximityBuffer = defaultProximityBuffer;
 	}
 
 	public boolean isWithinAttractionProximity(Attraction attraction, Location location) {
@@ -103,69 +98,17 @@ public class RewardsService {
 	 * @param user User object
 	 */
 	public void calculateRewards(User user) {
-		CopyOnWriteArrayList<VisitedLocation> userLocations = new CopyOnWriteArrayList<>();
-		List<Attraction> attractions = new CopyOnWriteArrayList<>();
+		List<VisitedLocation> userLocations = user.getVisitedLocations();
+		List<Attraction> attractions = gpsService.getAttractions();
 
-		userLocations.addAll(user.getVisitedLocations());
-		attractions.addAll(gpsService.getAttractions());
-
-		userLocations.forEach(v -> {
+		userLocations.forEach(visitedLocation -> {
 			attractions.forEach(a -> {
-				if (user.getUserRewards().stream().filter(r -> r.attraction.attractionName.equals(a.attractionName)).count() == 0) {
-					if (nearAttraction(v, a)) {
-						user.addUserReward(new UserReward(v, a, getRewardPoints(a, user.getUserId())));
+				if(user.getUserRewards().stream().filter(r -> r.attraction.attractionName.equals(a.attractionName)).count() == 0) {
+					if(nearAttraction(visitedLocation, a)) {
+						user.addUserReward(new UserReward(visitedLocation, a, getRewardPoints(a, user.getUserId())));
 					}
 				}
 			});
 		});
 	}
-
-
-	/**
-	 * Calculate rewards for a provided User
-	 *
-	 * Checks all user's VisitedLocations, compares each to list of Attractions from GpsService
-	 * If a user has visited an attraction (ie visited location is in range of an attraction)
-	 * Add reward to user for that attraction if they have not already received a reward for it
-	 *
-	 * @param user User object
-	 * @return userName
-	 */
-	public String calculateRewardsReturn(User user) {
-
-		List<VisitedLocation> userLocations = user.getVisitedLocations();
-		List<Attraction> attractions = gpsService.getAttractions();
-
-		CopyOnWriteArrayList<CompletableFuture> futures = new CopyOnWriteArrayList<CompletableFuture>();
-
-		for(VisitedLocation visitedLocation : userLocations) {
-			for (Attraction attr : attractions) {
-				futures.add(
-						CompletableFuture.runAsync(()-> {
-							if(user.getUserRewards().stream().filter(r -> r.attraction.attractionName.equals(attr.attractionName)).count() == 0) {
-
-								if(nearAttraction(visitedLocation, attr)) {
-									userService.addUserReward(user.getUserName(), visitedLocation, attr, getRewardPoints(attr, user.getUserId()));
-								}
-							}
-						},executorService)
-				);
-			}
-		}
-
-		futures.forEach((n)-> {
-			try {
-				n.get();
-			} catch (InterruptedException e) {
-				logger.error("Calculate Rewards InterruptedException: " + e);
-			} catch (ExecutionException e) {
-				logger.error("Calculate Rewards ExecutionException: " + e);
-			}
-		});
-		return user.getUserName();
-	}
-	public ExecutorService getExecutorService() {
-		return executorService;
-	}
-
 }

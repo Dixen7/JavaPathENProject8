@@ -4,9 +4,11 @@ import static org.junit.Assert.*;
 
 import java.util.*;
 
+
 import gpsUtil.location.Location;
+
 import org.junit.Before;
-import org.junit.Ignore;
+
 import org.junit.Test;
 
 import gpsUtil.GpsUtil;
@@ -14,6 +16,7 @@ import gpsUtil.location.Attraction;
 import gpsUtil.location.VisitedLocation;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import rewardCentral.RewardCentral;
@@ -27,7 +30,7 @@ import tripPricer.TripPricer;
 public class TestRewardsService {
 
 	@Mock
-	private GpsUtil gpsUtil;
+	private GpsUtil gpsUtilMock;
 
 	@Before
 	public void setUp() {
@@ -50,12 +53,14 @@ public class TestRewardsService {
 		user.addToVisitedLocations(new VisitedLocation(user.getUserId(), attraction, new Date()));
 		tourGuideService.addUser(user);
 
-		rewardsService.calculateRewardsReturn(user);
+		rewardsService.calculateRewards(user);
 
 		User updatedUser = userService.getUserByUsername(user.getUserName());
 
 		List<UserReward> userRewards = updatedUser.getUserRewards();
 		tourGuideService.tracker.stopTracking();
+
+		System.out.println("Size: " + userRewards.size());
 		assertTrue(userRewards.size() == 1);
 	}
 
@@ -65,13 +70,12 @@ public class TestRewardsService {
 		UserService userService = new UserService();
 		RewardsService rewardsService = new RewardsService(gpsService, new RewardCentral(), userService);
 		Attraction attraction = gpsService.getAttractions().get(0);
-		Location attractionLocation = new Location(attraction.latitude, attraction.longitude);
-		assertTrue(rewardsService.isWithinAttractionProximity(attraction, attractionLocation));
+		assertTrue(rewardsService.isWithinAttractionProximity(attraction, attraction));
 	}
 
 	@Test
-	public void nearAllAttractionggs() throws ConcurrentModificationException {
-		GpsService gpsService = new GpsService(gpsUtil);
+	public void nearAllAttractions() throws ConcurrentModificationException {
+		GpsService gpsService = new GpsService(gpsUtilMock);
 		UserService userService = new UserService();
 		TripService tripService = new TripService(new TripPricer());
 		RewardsService rewardsService = new RewardsService(gpsService, new RewardCentral(), userService);
@@ -80,15 +84,11 @@ public class TestRewardsService {
 		InternalTestHelper.setInternalUserNumber(1);
 		TourGuideService tourGuideService = new TourGuideService(gpsService, rewardsService, userService, tripService);
 
-		Attraction attractionResponse = new Attraction("Disneyland", "Anaheim", "CA", 33.817595D, -117.922008D);
-		List<Attraction> attractionResponseList = new ArrayList<>();
-		attractionResponseList.add(attractionResponse);
-		Mockito.when(gpsUtil.getAttractions()).thenReturn(attractionResponseList);
-
 		rewardsService.calculateRewards(tourGuideService.getAllUsers().get(0));
 		List<UserReward> userRewards = tourGuideService.getUserRewards(tourGuideService.getAllUsers().get(0).getUserName());
+		tourGuideService.tracker.stopTracking();
 
-		assertEquals(gpsUtil.getAttractions().size(), userRewards.size());
+		assertEquals(gpsService.getAttractions().size(), userRewards.size());
 	}
 
 }
