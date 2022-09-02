@@ -2,15 +2,23 @@ package tourGuide;
 
 import static org.junit.Assert.*;
 
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+
+
+import gpsUtil.location.Location;
+
+import org.junit.Before;
 
 import org.junit.Test;
 
 import gpsUtil.GpsUtil;
 import gpsUtil.location.Attraction;
 import gpsUtil.location.VisitedLocation;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 import rewardCentral.RewardCentral;
 import tourGuide.helper.InternalTestHelper;
 import tourGuide.service.*;
@@ -18,7 +26,16 @@ import tourGuide.model.user.User;
 import tourGuide.model.user.UserReward;
 import tripPricer.TripPricer;
 
+@RunWith(MockitoJUnitRunner.class)
 public class TestRewardsService {
+
+	@Mock
+	private GpsUtil gpsUtilMock;
+
+	@Before
+	public void setUp() {
+		Locale.setDefault(new Locale("en", "US"));
+	}
 
 	@Test
 	public void userGetRewards() {
@@ -36,7 +53,7 @@ public class TestRewardsService {
 		user.addToVisitedLocations(new VisitedLocation(user.getUserId(), attraction, new Date()));
 		tourGuideService.addUser(user);
 
-		rewardsService.calculateRewardsReturn(user);
+		rewardsService.calculateRewards(user);
 
 		User updatedUser = userService.getUserByUsername(user.getUserName());
 
@@ -57,9 +74,8 @@ public class TestRewardsService {
 	}
 
 	@Test
-	public void nearAllAttractions() {
-		GpsUtil gpsUtil = new GpsUtil();
-		GpsService gpsService = new GpsService(gpsUtil);
+	public void nearAllAttractions() throws ConcurrentModificationException {
+		GpsService gpsService = new GpsService(gpsUtilMock);
 		UserService userService = new UserService();
 		TripService tripService = new TripService(new TripPricer());
 		RewardsService rewardsService = new RewardsService(gpsService, new RewardCentral(), userService);
@@ -68,12 +84,11 @@ public class TestRewardsService {
 		InternalTestHelper.setInternalUserNumber(1);
 		TourGuideService tourGuideService = new TourGuideService(gpsService, rewardsService, userService, tripService);
 
-		rewardsService.calculateRewardsReturn(tourGuideService.getAllUsers().get(0));
+		rewardsService.calculateRewards(tourGuideService.getAllUsers().get(0));
 		List<UserReward> userRewards = tourGuideService.getUserRewards(tourGuideService.getAllUsers().get(0).getUserName());
-		System.out.println(userRewards.size());
 		tourGuideService.tracker.stopTracking();
 
-		assertEquals(gpsUtil.getAttractions().size(), userRewards.size());
+		assertEquals(gpsService.getAttractions().size(), userRewards.size());
 	}
 
 }

@@ -1,8 +1,6 @@
 package tourGuide.service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.*;
 
 import org.slf4j.Logger;
@@ -15,6 +13,7 @@ import gpsUtil.location.Location;
 import gpsUtil.location.VisitedLocation;
 import rewardCentral.RewardCentral;
 import tourGuide.model.user.User;
+import tourGuide.model.user.UserReward;
 
 /**
  * RewardsService interfaces with RewardCentral and performs associated tasks for main TourGuide application
@@ -25,17 +24,13 @@ public class RewardsService {
 
 	private static final double STATUTE_MILES_PER_NAUTICAL_MILE = 1.15077945;
 
-	// proximity in miles
 	private int defaultProximityBuffer = 100;
 	private int proximityBuffer = defaultProximityBuffer;
 	private int attractionProximityRange = 200;
 	private final GpsService gpsService;
 	private final RewardCentral rewardsCentral;
 	private final UserService userService;
-
-	//concurrency variables
-	@Value("${thread.pool.size}")
-	private int threadPoolSize = 500;
+	private int threadPoolSize = 50;
 	private ExecutorService executorService = Executors.newFixedThreadPool(threadPoolSize);
 
 	public RewardsService(GpsService gpsService, RewardCentral rewardCentral, UserService userService) {
@@ -44,14 +39,13 @@ public class RewardsService {
 		this.userService = userService;
 	}
 
+	public ExecutorService getExecutor() {
+		return executorService;
+	}
+
 	public void setProximityBuffer(int proximityBuffer) {
 		logger.debug("setProximityBuffer: updating proximity buffer to " + proximityBuffer);
 		this.proximityBuffer = proximityBuffer;
-	}
-
-	public void setDefaultProximityBuffer() {
-		logger.debug("setDefaultProximityBuffer: resetting proximity buffer to " + defaultProximityBuffer);
-		proximityBuffer = defaultProximityBuffer;
 	}
 
 	public boolean isWithinAttractionProximity(Attraction attraction, Location location) {
@@ -59,7 +53,7 @@ public class RewardsService {
 	}
 
 	//Check if a VisitedLocation is within range of an Attraction
-	private boolean nearAttraction(VisitedLocation visitedLocation, Attraction attraction) {
+	public boolean nearAttraction(VisitedLocation visitedLocation, Attraction attraction) {
 		return getDistance(attraction, visitedLocation.location) > proximityBuffer ? false : true;
 	}
 
@@ -104,80 +98,17 @@ public class RewardsService {
 	 * @param user User object
 	 */
 	public void calculateRewards(User user) {
-
 		List<VisitedLocation> userLocations = user.getVisitedLocations();
 		List<Attraction> attractions = gpsService.getAttractions();
 
-		ArrayList<CompletableFuture> futures = new ArrayList<>();
-
-		for(VisitedLocation visitedLocation : userLocations) {
-			for (Attraction attr : attractions) {
-				futures.add(
-						CompletableFuture.runAsync(()-> {
-							if(user.getUserRewards().stream().filter(r -> r.attraction.attractionName.equals(attr.attractionName)).count() == 0) {
-
-								if(nearAttraction(visitedLocation, attr)) {
-									userService.addUserReward(user.getUserName(), visitedLocation, attr, getRewardPoints(attr, user.getUserId()));
-								}
-							}
-						},executorService)
-				);
-			}
-		}
-
-		futures.forEach((n)-> {
-			try {
-				n.get();
-			} catch (InterruptedException e) {
-				logger.error("Calculate Rewards InterruptedException: " + e);
-			} catch (ExecutionException e) {
-				logger.error("Calculate Rewards ExecutionException: " + e);
-			}
+		userLocations.forEach(visitedLocation -> {
+			attractions.forEach(a -> {
+				if(user.getUserRewards().stream().filter(r -> r.attraction.attractionName.equals(a.attractionName)).count() == 0) {
+					if(nearAttraction(visitedLocation, a)) {
+						user.addUserReward(new UserReward(visitedLocation, a, getRewardPoints(a, user.getUserId())));
+					}
+				}
+			});
 		});
-
-	}
-
-	/**
-	 * Calculate rewards for a provided User
-	 *
-	 * Checks all user's VisitedLocations, compares each to list of Attractions from GpsService
-	 * If a user has visited an attraction (ie visited location is in range of an attraction)
-	 * Add reward to user for that attraction if they have not already received a reward for it
-	 *
-	 * @param user User object
-	 * @return userName
-	 */
-	public String calculateRewardsReturn(User user) {
-
-		List<VisitedLocation> userLocations = user.getVisitedLocations();
-		List<Attraction> attractions = gpsService.getAttractions();
-
-		CopyOnWriteArrayList<CompletableFuture> futures = new CopyOnWriteArrayList<CompletableFuture>();
-
-		for(VisitedLocation visitedLocation : userLocations) {
-			for (Attraction attr : attractions) {
-				futures.add(
-						CompletableFuture.runAsync(()-> {
-							if(user.getUserRewards().stream().filter(r -> r.attraction.attractionName.equals(attr.attractionName)).count() == 0) {
-
-								if(nearAttraction(visitedLocation, attr)) {
-									userService.addUserReward(user.getUserName(), visitedLocation, attr, getRewardPoints(attr, user.getUserId()));
-								}
-							}
-						},executorService)
-				);
-			}
-		}
-
-		futures.forEach((n)-> {
-			try {
-				n.get();
-			} catch (InterruptedException e) {
-				logger.error("Calculate Rewards InterruptedException: " + e);
-			} catch (ExecutionException e) {
-				logger.error("Calculate Rewards ExecutionException: " + e);
-			}
-		});
-		return user.getUserName();
 	}
 }

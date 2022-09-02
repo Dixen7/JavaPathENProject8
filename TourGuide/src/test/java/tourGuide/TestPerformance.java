@@ -2,11 +2,12 @@ package tourGuide;
 
 import static org.junit.Assert.assertTrue;
 
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 
+import gpsUtil.location.Location;
 import org.apache.commons.lang3.time.StopWatch;
+import org.junit.Before;
 import org.junit.Test;
 
 import gpsUtil.GpsUtil;
@@ -14,11 +15,17 @@ import gpsUtil.location.Attraction;
 import gpsUtil.location.VisitedLocation;
 import rewardCentral.RewardCentral;
 import tourGuide.helper.InternalTestHelper;
+import tourGuide.model.user.UserReward;
 import tourGuide.service.*;
 import tourGuide.model.user.User;
 import tripPricer.TripPricer;
 
 public class TestPerformance {
+
+	@Before
+	public void setUp() {
+		Locale.setDefault(new Locale("en", "US"));
+	}
 
 	/*
 	 * A note on performance improvements:
@@ -40,7 +47,9 @@ public class TestPerformance {
 	 *          assertTrue(TimeUnit.MINUTES.toSeconds(20) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
 	 */
 
-	private static final int NUMBER_OF_TEST_USERS = 100;
+
+	// Users should be incremented up to 100,000, and test finishes within 20 minutes
+	private static final int NUMBER_OF_TEST_USERS = 100000;
 
 	@Test
 	public void highVolumeTrackLocation() {
@@ -48,7 +57,7 @@ public class TestPerformance {
 		UserService userService = new UserService();
 		TripService tripService = new TripService(new TripPricer());
 		RewardsService rewardsService = new RewardsService(gpsService, new RewardCentral(), userService);
-		// Users should be incremented up to 100000, and test finishes within 15 minutes
+
 		InternalTestHelper.setInternalUserNumber(NUMBER_OF_TEST_USERS);
 		TourGuideService tourGuideService = new TourGuideService(gpsService, rewardsService, userService, tripService);
 
@@ -68,7 +77,7 @@ public class TestPerformance {
 		UserService userService = new UserService();
 		TripService tripService = new TripService(new TripPricer());
 		RewardsService rewardsService = new RewardsService(gpsService, new RewardCentral(), userService);
-		// Users should be incremented up to 100,000, and test finishes within 15 minutes
+
 		InternalTestHelper.setInternalUserNumber(NUMBER_OF_TEST_USERS);
 		TourGuideService tourGuideService = new TourGuideService(gpsService, rewardsService, userService, tripService);
 
@@ -84,36 +93,32 @@ public class TestPerformance {
 
 	@Test
 	public void highVolumeGetRewards() {
+
+		InternalTestHelper.setInternalUserNumber(NUMBER_OF_TEST_USERS);
+
 		GpsService gpsService = new GpsService(new GpsUtil());
 		UserService userService = new UserService();
 		TripService tripService = new TripService(new TripPricer());
 		RewardsService rewardsService = new RewardsService(gpsService, new RewardCentral(), userService);
-
-		// Users should be incremented up to 100,000, and test finishes within 20 minutes
-		InternalTestHelper.setInternalUserNumber(NUMBER_OF_TEST_USERS);
-		StopWatch stopWatch = new StopWatch();
-		stopWatch.start();
 		TourGuideService tourGuideService = new TourGuideService(gpsService, rewardsService, userService, tripService);
 
-		System.out.println("Starting Adding Locations");
+		StopWatch stopWatch = new StopWatch();
+		stopWatch.start();
+
 
 		Attraction attraction = gpsService.getAttractions().get(0);
-		List<User> allUsers = tourGuideService.getAllUsers();
-		allUsers.forEach(u -> userService.addToVisitedLocations((new VisitedLocation(u.getUserId(), attraction, new Date())), u.getUserName()));
+		Location attractionLocation = new Location(attraction.latitude, attraction.longitude);
+		List<User> allUsers = new ArrayList<>();
+		allUsers = tourGuideService.getAllUsers();
+		allUsers.forEach(u -> {
+			u.addToVisitedLocations(new VisitedLocation(u.getUserId(), attractionLocation, new Date()));
+		});
 
-		System.out.println("Done Adding Locations");
-		System.out.println("Starting Calculating Rewards");
-
-		tourGuideService.processAllUserRewards();
-
-		System.out.println("Done Calculating Rewards");
-		System.out.println("Starting Asserting");
+		tourGuideService.calculateReward(allUsers);
 
 		for(User user : allUsers) {
 			assertTrue(user.getUserRewards().size() > 0);
 		}
-		System.out.println("Done Asserting");
-
 		stopWatch.stop();
 		tourGuideService.tracker.stopTracking();
 

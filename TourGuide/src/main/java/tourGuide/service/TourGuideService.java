@@ -34,8 +34,7 @@ public class TourGuideService {
 	private final TripService tripService;
 	public final Tracker tracker;
 	boolean testMode = true;
-	@Value("${thread.pool.size}")
-	private int threadPoolSize = 500;
+	private int threadPoolSize = 50;
 	private ExecutorService executorService = Executors.newFixedThreadPool(threadPoolSize);
 
 
@@ -53,6 +52,10 @@ public class TourGuideService {
 		}
 		tracker = new Tracker(this);
 		addShutDownHook();
+	}
+
+	public ExecutorService getExecutor() {
+		return executorService;
 	}
 
 	/**
@@ -108,15 +111,6 @@ public class TourGuideService {
 	}
 
 	/**
-	 * Get number of users currently stored in system
-	 *
-	 * @return number of users currently stored, as integer
-	 */
-	public int getUserCount() {
-		return userService.getUserCount();
-	}
-
-	/**
 	 * Add a user to the system
 	 *
 	 * @param user User object to be added
@@ -154,9 +148,7 @@ public class TourGuideService {
 
 		VisitedLocation visitedLocation = gpsService.getUserLocation(user.getUserId());
 
-		CompletableFuture.supplyAsync(()-> {
-					return userService.addToVisitedLocations(visitedLocation, user.getUserName());
-				}, executorService)
+		CompletableFuture.supplyAsync(()-> userService.addToVisitedLocations(visitedLocation, user.getUserName()), executorService)
 				.thenAccept(n -> {rewardsService.calculateRewards(user);});
 
 		return visitedLocation;
@@ -176,11 +168,9 @@ public class TourGuideService {
 		ArrayList<CompletableFuture> futures = new ArrayList<>();
 
 		logger.debug("trackAllUserLocations: Creating futures for " + allUsers.size() + " user(s)");
-		allUsers.forEach((n)-> {
-			futures.add(
-					CompletableFuture.supplyAsync(()-> userService.addToVisitedLocations(gpsService.getUserLocation(n.getUserId()), n.getUserName()), executorService)
-			);
-		});
+		allUsers.forEach((n)-> futures.add(
+				CompletableFuture.supplyAsync(()-> userService.addToVisitedLocations(gpsService.getUserLocation(n.getUserId()), n.getUserName()), executorService)
+		));
 		logger.debug("trackAllUserLocations: Futures created: " + futures.size() + ". Getting futures...");
 		futures.forEach((n)-> {
 			try {
@@ -206,7 +196,6 @@ public class TourGuideService {
 	 */
 	public void trackAllUserLocationsAndProcess() {
 
-
 		List<User> allUsers = userService.getAllUsers();
 
 		ArrayList<CompletableFuture> futures = new ArrayList<>();
@@ -214,9 +203,7 @@ public class TourGuideService {
 		logger.debug("trackAllUserLocationsAndProcess: Creating futures for " + allUsers.size() + " user(s)");
 		allUsers.forEach((n)-> {
 			futures.add(
-					CompletableFuture.supplyAsync(()-> {
-								return userService.addToVisitedLocations(gpsService.getUserLocation(n.getUserId()), n.getUserName());
-							}, executorService)
+					CompletableFuture.supplyAsync(()-> userService.addToVisitedLocations(gpsService.getUserLocation(n.getUserId()), n.getUserName()), executorService)
 							.thenAccept(y -> {rewardsService.calculateRewards(n);})
 			);
 		});
@@ -234,41 +221,6 @@ public class TourGuideService {
 
 	}
 
-	/**
-	 * Process any pending rewards for all users
-	 *
-	 * For each user:
-	 * Asks reward service to calculate user's rewards to update with any new visited locations
-	 *
-	 */
-	public void processAllUserRewards() {
-
-
-		List<User> allUsers = userService.getAllUsers();
-
-		ArrayList<CompletableFuture> futures = new ArrayList<>();
-
-		logger.debug("processAllUserRewards: Creating threads for " + allUsers.size() + " user(s)");
-		allUsers.forEach((n)-> {
-			futures.add(
-					CompletableFuture.supplyAsync(()-> {
-						return rewardsService.calculateRewardsReturn(n);
-					}, executorService)
-			);
-		});
-		logger.debug("processAllUserRewards: Futures created: " + futures.size() + ". Getting futures...");
-		futures.forEach((n)-> {
-			try {
-				n.get();
-			} catch (InterruptedException e) {
-				logger.error("Process All User Rewards InterruptedException: " + e);
-			} catch (ExecutionException e) {
-				logger.error("Process All User Rewards ExecutionException: " + e);
-			}
-		});
-		logger.debug("processAllUserRewards: Done!");
-
-	}
 
 	/**
 	 * Get all users' current locations from UserService
@@ -319,12 +271,7 @@ public class TourGuideService {
 
 	private static final double STATUTE_MILES_PER_NAUTICAL_MILE = 1.15077945;
 	private final int defaultProximityBuffer = 10;
-	private final int proximityBuffer = defaultProximityBuffer;
-	private final int attractionProximityRange = 200;
 
-	private boolean nearAttraction(VisitedLocation visitedLocation, Attraction attraction) {
-		return getDistance(attraction, visitedLocation.location) > proximityBuffer ? false : true;
-	}
 	private double getDistance(Location loc1, Location loc2) {
 		double lat1 = Math.toRadians(loc1.latitude);
 		double lon1 = Math.toRadians(loc1.longitude);
@@ -340,11 +287,23 @@ public class TourGuideService {
 	}
 
 	private void addShutDownHook() {
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			public void run() {
-				executorService.shutdown();tracker.stopTracking();
-			}
-		});
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			executorService.shutdown();tracker.stopTracking();
+		}));
+	}
+
+	public void calculateReward(List<User> users) {
+		ExecutorService executorService = Executors.newFixedThreadPool(100);
+		users.forEach(user ->
+				executorService.submit(new Thread(() -> rewardsService.calculateRewards(user))));
+
+		executorService.shutdown();
+		try {
+			executorService.awaitTermination(20, TimeUnit.MINUTES);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	/**********************************************************************************

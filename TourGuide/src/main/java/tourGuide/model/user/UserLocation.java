@@ -4,6 +4,9 @@ import gpsUtil.location.VisitedLocation;
 
 import java.util.UUID;
 
+/**
+ * UserLocation is an output entity used to allow the correct formatting of responses to the /getAllCurrentLocations endpoint
+ */
 public class UserLocation {
 
     public String userId;
