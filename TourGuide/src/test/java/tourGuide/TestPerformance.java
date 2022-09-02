@@ -49,7 +49,7 @@ public class TestPerformance {
 
 
 	// Users should be incremented up to 100,000, and test finishes within 20 minutes
-	private static final int NUMBER_OF_TEST_USERS = 100000;
+	private static final int NUMBER_OF_TEST_USERS = 100;
 
 	@Test
 	public void highVolumeTrackLocation() {
@@ -108,7 +108,7 @@ public class TestPerformance {
 
 		Attraction attraction = gpsService.getAttractions().get(0);
 		Location attractionLocation = new Location(attraction.latitude, attraction.longitude);
-		List<User> allUsers = new ArrayList<>();
+		List<User> allUsers;
 		allUsers = tourGuideService.getAllUsers();
 		allUsers.forEach(u -> {
 			u.addToVisitedLocations(new VisitedLocation(u.getUserId(), attractionLocation, new Date()));
