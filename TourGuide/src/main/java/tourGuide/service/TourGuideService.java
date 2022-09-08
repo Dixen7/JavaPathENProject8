@@ -244,13 +244,11 @@ public class TourGuideService {
 		List<Attraction> attractionsList;
 		Map<Double, Attraction> attractionsMap = new HashMap<>();
 
-		//Create Map of Distance/Location, place into TreeMap to sort by distance
 		gpsService.getAttractions().forEach((n)-> {
 			attractionsMap.put(getDistance(n, visitedLocation.location), n);
 		});
 		TreeMap<Double, Attraction> sortedAttractionMap = new TreeMap<>(attractionsMap);
 
-		//Create ArrayList containing closest 5 attractions
 		if (sortedAttractionMap.size() >= 5) {
 			attractionsList = new ArrayList<>(sortedAttractionMap.values()).subList(0,5);
 		}
@@ -259,7 +257,6 @@ public class TourGuideService {
 			attractionsList = new ArrayList<>(sortedAttractionMap.values()).subList(0,sortedAttractionMap.size());
 		}
 
-		//Create list of output entities containing only desired data
 		List<NearbyAttraction> output = new ArrayList<>();
 		attractionsList.forEach((n)-> {output.add(new NearbyAttraction(n.attractionName,
 				n.latitude, n.longitude, visitedLocation.location.latitude, visitedLocation.location.longitude,
@@ -272,6 +269,16 @@ public class TourGuideService {
 	private static final double STATUTE_MILES_PER_NAUTICAL_MILE = 1.15077945;
 	private final int defaultProximityBuffer = 10;
 
+	/**
+	 * Get five nearest attractions for provided location
+	 *
+	 * Gets all attractions from GpsService, and sorts by distance from provided location.
+	 * Then returns the nearest five (or as many as possible, if GpsService has less than 5 total).
+	 *
+	 * @param loc1  location1 to be used
+	 * @param loc2  location2 to be used
+	 * @return
+	 */
 	private double getDistance(Location loc1, Location loc2) {
 		double lat1 = Math.toRadians(loc1.latitude);
 		double lon1 = Math.toRadians(loc1.longitude);
@@ -292,6 +299,11 @@ public class TourGuideService {
 		}));
 	}
 
+	/**
+	 * Calculate for all the users in params the reward with these personally visited locations
+	 *
+	 * @param users  List of users to be calculateted his rewards
+	 */
 	public void calculateReward(List<User> users) {
 		ExecutorService executorService = Executors.newFixedThreadPool(100);
 		users.forEach(user ->

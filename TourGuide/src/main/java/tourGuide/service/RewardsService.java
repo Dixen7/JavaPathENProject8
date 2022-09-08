@@ -52,12 +52,10 @@ public class RewardsService {
 		return getDistance(attraction, location) > attractionProximityRange ? false : true;
 	}
 
-	//Check if a VisitedLocation is within range of an Attraction
 	public boolean nearAttraction(VisitedLocation visitedLocation, Attraction attraction) {
 		return getDistance(attraction, visitedLocation.location) > proximityBuffer ? false : true;
 	}
 
-	//Get reward point value of an attraction for a provided UUID
 	private int getRewardPoints(Attraction attraction, UUID userid) {
 		return rewardsCentral.getAttractionRewardPoints(attraction.attractionId, userid);
 	}
@@ -73,7 +71,6 @@ public class RewardsService {
 		return rewardsCentral.getAttractionRewardPoints(attraction.attractionId, userid);
 	}
 
-	//Get distance between two locations
 	private double getDistance(Location loc1, Location loc2) {
 		double lat1 = Math.toRadians(loc1.latitude);
 		double lon1 = Math.toRadians(loc1.longitude);

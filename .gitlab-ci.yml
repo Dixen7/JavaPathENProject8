@@ -1,4 +1,4 @@
-image: java:8-jdk
+image: gradle:jdk11
 stages: # List of stages for jobs, and their order of execution
   - build
   - test
